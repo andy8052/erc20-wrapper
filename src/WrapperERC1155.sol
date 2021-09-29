@@ -5,16 +5,15 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 
 contract FractionalWrapper is Ownable, ERC165, IERC721 {
-    
-    address immutable public underlying;
+
+    IERC20 immutable public underlying;
     string public name;
     string public symbol;
     mapping(address => uint256) public tokenBalance;
 
-    constructor(string memory _name, string memory _symbol, address _underlying) {
+    constructor(string memory _name, string memory _symbol, IERC20 _underlying) {
         name = _name;
         symbol = _symbol;
         underlying = _underlying;
@@ -42,7 +41,6 @@ contract FractionalWrapper is Ownable, ERC165, IERC721 {
     function supportsInterface(bytes4 interfaceId) public view virtual override(ERC165, IERC165) returns (bool) {
         return
             interfaceId == type(IERC721).interfaceId ||
-            interfaceId == type(IERC721Metadata).interfaceId ||
             super.supportsInterface(interfaceId);
     }
 
@@ -65,7 +63,7 @@ contract FractionalWrapper is Ownable, ERC165, IERC721 {
             _mint(_from);
         }
 
-        IERC20(underlying).transferFrom(_from, address(this), _amount);
+        underlying.transferFrom(_from, address(this), _amount);
         tokenBalance[_from] += _amount;
     }
 
@@ -75,7 +73,7 @@ contract FractionalWrapper is Ownable, ERC165, IERC721 {
 
     function withdrawFrom(address _from, uint256 _amount) public {
         tokenBalance[_from] -= _amount;
-        IERC20(underlying).transfer(_from, _amount);
+        underlying.transfer(_from, _amount);
 
         if (tokenBalance[_from] == 0) {
             _burn(_from);
