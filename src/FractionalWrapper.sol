@@ -9,13 +9,9 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 contract FractionalWrapper is Ownable, ERC165, IERC721 {
 
     IERC20 immutable public underlying;
-    string public name;
-    string public symbol;
     mapping(address => uint256) public tokenBalance;
 
-    constructor(string memory _name, string memory _symbol, IERC20 _underlying) {
-        name = _name;
-        symbol = _symbol;
+    constructor(IERC20 _underlying) {
         underlying = _underlying;
     }
 
