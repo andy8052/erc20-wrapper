@@ -1,20 +1,11 @@
 // SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-contract FractionalWrapper is Ownable, ERC165, IERC721 {
-
-    IERC20 immutable public underlying;
-    mapping(address => uint256) public tokenBalance;
-
-    constructor(IERC20 _underlying) {
-        underlying = _underlying;
-    }
-
+contract NonTransferrableERC721 is ERC165, IERC721 {
     /// Not Supported ERC721 Functions
     function safeTransferFrom(address, address, uint256) external override {require(false);}
     function safeTransferFrom(address, address, uint256, bytes calldata) external override {require(false);}
@@ -42,37 +33,11 @@ contract FractionalWrapper is Ownable, ERC165, IERC721 {
 
     /// Other Functions
 
-    function _mint(address owner) internal {
+    function _mint(address owner) internal virtual {
         emit Transfer(address(0), owner, uint256(uint160(owner)));
     }
 
-    function _burn(address owner) internal {
+    function _burn(address owner) internal virtual {
         emit Transfer(owner, address(0), uint256(uint160(owner)));
-    }
-
-    function deposit(uint256 _amount) public {
-        depositFrom(msg.sender, _amount);
-    }
-
-    function depositFrom(address _from, uint256 _amount) public {
-        if (tokenBalance[_from] == 0) {
-            _mint(_from);
-        }
-
-        underlying.transferFrom(_from, address(this), _amount);
-        tokenBalance[_from] += _amount;
-    }
-
-    function withdraw(uint256 _amount) public {
-        withdrawFrom(msg.sender, _amount);
-    }
-
-    function withdrawFrom(address _from, uint256 _amount) public {
-        tokenBalance[_from] -= _amount;
-        underlying.transfer(_from, _amount);
-
-        if (tokenBalance[_from] == 0) {
-            _burn(_from);
-        }
     }
 }
